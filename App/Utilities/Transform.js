@@ -1,8 +1,8 @@
-import {getAllInformation} from './Storage';
+import * as _ from 'lodash';
+import moment from 'moment';
 import {isEmpty} from 'lodash';
 import {showMessage} from './UiUtilities';
-import * as _ from 'lodash';
-import {printLogs} from '../Config/ReactotronConfig';
+import {getAllInformation} from './Storage';
 
 export const buildApiParams = async (rawData) => {
   const {data: actualDataString} = rawData || {};
@@ -40,4 +40,18 @@ export const buildApiParams = async (rawData) => {
     showMessage({title: message || 'Error is found'});
     return {isError: true};
   }
+};
+
+export const transformReservedWords = (template) => {
+  const {data} = template || {};
+  const {items, ...rest} = data || {};
+  const formattedDataMap = {};
+  _.forOwn(rest, (value, key) => {
+    if (value === '{{ today }}' || value === '{{today}}') {
+      formattedDataMap[key] = moment().format('YYYY-MM-DD');
+    } else {
+      formattedDataMap[key] = value;
+    }
+  });
+  return formattedDataMap;
 };
