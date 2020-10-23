@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
-import moment from 'moment';
 import {isEmpty} from 'lodash';
+import moment from 'moment';
 import {showMessage} from './UiUtilities';
 import {getAllInformation} from './Storage';
 
@@ -31,11 +31,16 @@ export const buildApiParams = async (rawData) => {
       }
     });
 
+    const transformedTemplateItem = {};
+    _.forOwn(templateItem, (value, key) => {
+      transformedTemplateItem[key] = getTransformedValue(value);
+    });
+
     if (isUnknownKey) {
       showMessage({title: 'Unknown key is found'});
       return {isError: true};
     }
-    return {isError: false, params: templateItem};
+    return {isError: false, params: transformedTemplateItem};
   } catch ({message}) {
     showMessage({title: message || 'Error is found'});
     return {isError: true};
@@ -47,11 +52,14 @@ export const transformReservedWords = (template) => {
   const {items, ...rest} = data || {};
   const formattedDataMap = {};
   _.forOwn(rest, (value, key) => {
-    if (value === '{{ today }}' || value === '{{today}}') {
-      formattedDataMap[key] = moment().format('YYYY-MM-DD');
-    } else {
-      formattedDataMap[key] = value;
-    }
+    formattedDataMap[key] = getTransformedValue(value);
   });
   return formattedDataMap;
+};
+
+const getTransformedValue = (value) => {
+  if (value === '{{ today }}' || value === '{{today}}') {
+    return moment().format('YYYY-MM-DD');
+  }
+  return value;
 };
